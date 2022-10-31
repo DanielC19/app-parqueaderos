@@ -1,5 +1,6 @@
 package app_parqueaderos;
 
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Main {
@@ -11,6 +12,7 @@ public class Main {
         } else {
             System.out.println("\n¡Bienvenido!");
         }
+        guestView();
     }
 
     public static User menuLogin() {
@@ -127,5 +129,38 @@ public class Main {
                 break;
         }
         return user;
+    }
+
+    public static void guestView() {
+        Scanner sc = new Scanner(System.in);
+        while (true) {
+            // Build all parking
+            ArrayList<Parking> parking = Parking.buildParking();
+            System.out.println("\n** DISPONIBILIDAD GENERAL **");
+            int counter = 1;
+            for (Parking item : parking) {
+                System.out.println(counter + ". Parqueadero " + item.getName() + ": " + item.availability());
+                counter++;
+            }
+            int option = 0;
+            do {
+                System.out.println("\nSelecciona el parqueadero que quieras o escribe 0 para salir");
+                System.out.print("Su opción: ");
+                option = sc.nextInt();
+            } while (option >= counter);
+            if (option == 0) {
+                System.exit(0);
+            }
+            System.out.println("\n* DISPONIBILIDAD PARQUEADERO " + parking.get(option - 1).getName().toUpperCase() + " *");
+            for (Section section : parking.get(option - 1).getSections()) {
+                System.out.println("Sección " + section.getName() + ": " + section.availability());
+            }
+            System.out.println("\nPresiona 0 para salir o cualquier otra tecla para volver");
+            System.out.print("Su opción: ");
+            String option2 = sc.next();
+            if (option2.equals("0")) {
+                System.exit(0);
+            }
+        }
     }
 }
