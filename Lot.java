@@ -3,7 +3,7 @@ package app_parqueaderos;
 import java.sql.*;
 
 public class Lot {
-    private int id;
+    private final int id;
     private boolean available;
     private int user_id;
 
@@ -19,9 +19,10 @@ public class Lot {
         try {
             Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/parqueaderos", "root", "");
 
-            PreparedStatement query = conn.prepareStatement("UPDATE lots SET available = ? WHERE id =  ?");
+            PreparedStatement query = conn.prepareStatement("UPDATE lots SET availability = ?, user_id = ? WHERE id =  ?");
             query.setBoolean(1, false);
-            query.setInt(2, this.id);
+            query.setInt(2, this.user_id);
+            query.setInt(3, this.id);
 
             query.executeUpdate();
 
@@ -31,23 +32,36 @@ public class Lot {
     }
 
     public void toggleAvailability() {
-        if (this.available) {
-            this.available = false;
-        } else {
-            this.available = true;
-        }
+        this.available = !this.available;
         try {
             Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/parqueaderos", "root", "");
 
-            PreparedStatement query = conn.prepareStatement("UPDATE lots SET available = ? WHERE id =  ?");
+            PreparedStatement query = conn.prepareStatement("UPDATE lots SET availability = ?, user_id = ? WHERE id =  ?");
             query.setBoolean(1, this.available);
-            query.setInt(2, this.id);
+            query.setInt(2, 0);
+            query.setInt(3, this.id);
 
             query.executeUpdate();
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
+    }
+
+    public static Lot findById(int id) {
+        try {
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/parqueaderos", "root", "");
+            Statement stmt = conn.createStatement();
+
+            ResultSet res = stmt.executeQuery("SELECT * FROM lots WHERE id = " + id);
+
+            while (res.next()) {
+                return new Lot(res.getInt("id"), res.getBoolean("availability"), res.getInt("user_id"));
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
     }
 
     public boolean availability(){

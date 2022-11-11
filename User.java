@@ -7,7 +7,6 @@ public class User {
     private String name;
     private String email;
     private String password;
-    private boolean vehicle; // True: Car, False: Moto
 
     public User() {}
 
@@ -19,40 +18,45 @@ public class User {
             ResultSet res = stmt.executeQuery("SELECT * FROM users WHERE email = '"+email+"' AND password = '"+password+"'");
 
             while (res.next()) {
+                this.id = res.getInt("id");
                 this.name = res.getString("name");
                 this.email = res.getString("email");
                 this.password = res.getString("password");
-                this.vehicle = res.getBoolean("vehicle");
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }
 
-    public User(String name, String email, String password, boolean vehicle) {
+    public User(String name, String email, String password) {
         this.name = name;
         this.email = email;
         this.password = password;
-        this.vehicle = vehicle;
+        try {
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/parqueaderos", "root", "");
+            Statement stmt = conn.createStatement();
+
+            ResultSet res = stmt.executeQuery("SELECT id FROM users WHERE email = '"+email+"' AND password = '"+password+"'");
+            while (res.next()) {
+                this.id = res.getInt("id");
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 
-    public static boolean register(String name, String email, String password, boolean vehicle) {
+    public static boolean register(String name, String email, String password) {
         try {
             Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/parqueaderos", "root", "");
 
-            PreparedStatement query = conn.prepareStatement("INSERT INTO users (name, email, password, vehicle) VALUES (?, ?, ?, ?)");
+            PreparedStatement query = conn.prepareStatement("INSERT INTO users (name, email, password) VALUES (?, ?, ?)");
             query.setString(1, name);
             query.setString(2, email);
             query.setString(3, password);
-            query.setBoolean(4, vehicle);
 
             int res = query.executeUpdate();
 
-            if (res > 0) {
-                return true;
-            } else {
-                return false;
-            }
+            return res > 0;
         } catch (Exception e) {
             return false;
         }
@@ -65,11 +69,7 @@ public class User {
 
             ResultSet res = stmt.executeQuery("SELECT id FROM users WHERE email = '"+email+"' AND password = '"+password+"'");
 
-            if (res.next()) {
-                return true;
-            } else {
-                return false;
-            }
+            return res.next();
         } catch (Exception e) {
             return false;
         }
@@ -81,9 +81,5 @@ public class User {
 
     public String getName() {
         return this.name;
-    }
-
-    public boolean getVehicle() {
-        return vehicle;
     }
 }
